@@ -10,10 +10,8 @@ public class FluidSpawner : MonoBehaviour
     
     [SerializeField] private bool testEnqueueFluidButton;
     [SerializeField] private FluidType testFluidType;
-
     [SerializeField] private PBEffect _lavaEffect;
     [SerializeField] private PBEffect _waterEffect;
-
     [SerializeField] private int particlesPerLavaBucket = 130;
 
     [SerializeField] private float lavaGravity = 1f;
@@ -44,13 +42,22 @@ public class FluidSpawner : MonoBehaviour
             testEnqueueFluidButton = false;
             LoadFluidBucket(testFluidType);
         }
+
     }
 
     public void LoadLavaBucket()
     {
         LoadFluidBucket(FluidType.lava); 
     }
+    public void LoadLavaBucketNoDrag()
+    {
+        LoadFluidBucketNoSound(FluidType.lavaNoDrag); 
 
+    }
+    public void LoadWaterBucketNoSound()
+    {
+        LoadFluidBucketNoSound(FluidType.water);
+    }
     public void LoadWaterBucket()
     {
         LoadFluidBucket(FluidType.water);
@@ -64,6 +71,20 @@ public class FluidSpawner : MonoBehaviour
             FluidParticle lp = _lavaParticlePool.GetObject();
 
             lp.InitParticle(this, fluidType, (fluidType == FluidType.lava) ? _lavaColor : _waterColor);
+            lp.InitParticle(this, fluidType, (fluidType == FluidType.lavaNoDrag) ? _lavaColor : _waterColor);
+
+            _lavaParticleSpawnQueue.Enqueue(lp); 
+        }
+    }
+    private void LoadFluidBucketNoSound(FluidType fluidType)
+    {
+ 
+        for(int i = 0; i < particlesPerLavaBucket; i++)
+        {
+            FluidParticle lp = _lavaParticlePool.GetObject();
+
+            lp.InitParticle(this, fluidType, (fluidType == FluidType.lava) ? _lavaColor : _waterColor);
+            lp.InitParticle(this, fluidType, (fluidType == FluidType.lavaNoDrag) ? _lavaColor : _waterColor);
 
             _lavaParticleSpawnQueue.Enqueue(lp); 
         }
@@ -88,7 +109,7 @@ public class FluidSpawner : MonoBehaviour
         GameObject newLP = Instantiate(lavaPrefab);
         newLP.transform.SetParent(this.transform);
         FluidParticle lp = newLP.GetComponent<FluidParticle>();
-        //lp.InitParticle(this, _lavaEffect, FluidType.lava, _lavaColor);
+        //lp.InitParticle(this, _lavaEffect, FluidType.lavaNoDrag, _lavaColor);
         newLP.gameObject.SetActive(false);
         newLP.transform.position = Vector3.up * 100;
         return lp;

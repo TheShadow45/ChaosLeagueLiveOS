@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public enum FluidType { lava, water}
+public enum FluidType { lava, water, lavaNoDrag}
 public class FluidParticle : MonoBehaviour
 {
     public FluidType Type;
@@ -36,6 +36,11 @@ public class FluidParticle : MonoBehaviour
             _pbEffector.OverrideExplodeAudio = _lavaSizzleDeathSound;
             Rb2D.drag = _lavaDrag;
         }
+        else if(type == FluidType.lavaNoDrag)
+        {
+            gameObject.name = "lavaParticleForTile";
+            _pbEffector.OverrideExplodeAudio = _lavaSizzleDeathSound;
+        }
 
         _meshRenderer.material.SetColor("_EmissionColor", color);
         _meshRenderer.material.SetColor("_BaseColor", color);
@@ -67,11 +72,23 @@ public class FluidParticle : MonoBehaviour
                 AudioController.inst.PlaySound(AudioController.inst.DeathByLava, 0.75f, 0.9f);
                 return;
             }
+            if (fp.Type == FluidType.water && Type == FluidType.lavaNoDrag
+            || fp.Type == FluidType.lavaNoDrag && Type == FluidType.water)
+            {
+                dbs.ReturnFluidParticleToPool(this);
+                AudioController.inst.PlaySound(AudioController.inst.DeathByLava, 0.75f, 0.9f);
+                return;
+            }
             return;
         }
 
         //If we hit cleaning bar, destroy
         if (collision.gameObject.layer == LayerMask.NameToLayer("CleaningBar"))
+        {
+            dbs.ReturnFluidParticleToPool(this);
+            return;
+        }
+        if (collision.gameObject.layer == LayerMask.NameToLayer("TileCleaningBar"))
         {
             dbs.ReturnFluidParticleToPool(this);
             return;
@@ -88,6 +105,13 @@ public class FluidParticle : MonoBehaviour
             return;
 
         if (Type == FluidType.lava)
+        {
+            AudioController.inst.PlaySound(AudioController.inst.DeathByLava, 0.9f, 1.1f);
+            dbs.ReturnFluidParticleToPool(this);
+            _pbEffector.DetectedPB(pb);
+            return;
+        }
+        if (Type == FluidType.lavaNoDrag)
         {
             AudioController.inst.PlaySound(AudioController.inst.DeathByLava, 0.9f, 1.1f);
             dbs.ReturnFluidParticleToPool(this);
